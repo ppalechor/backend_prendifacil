@@ -35,3 +35,33 @@ Rutas principales
 Notas
 - No se deben subir archivos .env ni credenciales.
 - Las respuestas usan JSON y códigos de estado HTTP estándar.
+
+Configuración de base de datos (Prisma)
+
+- MySQL
+  - `.env`: `DATABASE_URL="mysql://usuario:password@localhost:3306/prendifacil"`
+  - Migraciones y cliente:
+    ```bash
+    npx prisma migrate dev
+    npx prisma generate
+    ```
+  - Ver datos:
+    ```bash
+    npx prisma studio
+    ```
+
+- SQLite (local)
+  - `.env`: `DATABASE_URL="file:./prisma/dev.db"`
+  - Migraciones y cliente:
+    ```bash
+    npx prisma migrate dev
+    npx prisma generate
+    ```
+  - Ver datos:
+    ```bash
+    npx prisma studio
+    ```
+
+Pruebas rápidas
+- Verificar conexión DB: `node testdb.js`
+- Probar JWT: `node test-jwt.js` (requiere `JWT_SECRET` válido en `.env`)
