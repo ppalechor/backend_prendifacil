@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id_usuario     Int      @id @default(autoincrement())
+  identificacion String   @unique
+  nombres        String
+  direccion      String?
+  telefono       String?
+  rol            Role     @default(CLIENTE)
+  password       String?
+  failed_attempts Int     @default(0)
+  lock_until      DateTime?
+  empenos        Empeno[]
+
+  @@map("usuarios")
+}
+
+enum Role {
+  ADMIN
+  CLIENTE
+}
+
+model TipoArticulo {
+  id_tipo_articulo Int @id @default(autoincrement())
+  nombre           String     @unique
+  articulos        Articulo[]
+
+  @@map("tipos_articulos")
+}
+
+enum EstadoEmpeno {
+  ACTIVO
+  INACTIVO
+  FINALIZADO
+}
+
+model Empeno {
+  id_empeno         Int          @id @default(autoincrement())
+  usuario_id        Int
+  fecha_empeno      DateTime     @default(now())
+  descripcion       String?
+  interes_porcentaje Float?
+  meses             Int?
+  estado            EstadoEmpeno @default(ACTIVO)
+
+  usuario  Usuario   @relation(fields: [usuario_id], references: [id_usuario])
+  articulos Articulo[]
+  prestamos Prestamo[]
+
+  @@map("empenos")
+}
+
+enum EstadoArticulo {
+  EMPENADO // Manteniendo la convención sin tilde (EMPENADO)
+  RETIRADO
+}
+
+model Articulo {
+   id_articulo       Int             @id @default(autoincrement())
+   empeno_id         Int
+   tipo_articulo_id  Int?
+   descripcion       String
+   valor_avaluo      Float
+   estado            EstadoArticulo  @default(EMPENADO)
+
+   empeno            Empeno          @relation(fields: [empeno_id], references: [id_empeno])
+   tipo_articulo     TipoArticulo?   @relation(fields: [tipo_articulo_id], references: [id_tipo_articulo])
+
+   @@map("articulos")
+}
+
+
+
+enum EstadoPrestamo {
+  ACTIVO
+  PAGADO
+  VENCIDO
+}
+
+model Prestamo {
+id_prestamo    Int            @id @default(autoincrement())
+empeno_id      Int            @unique
+fecha_prestamo DateTime       @default(now())
+ valor          Float
+estado         EstadoPrestamo @default(ACTIVO)
+
+empeno    Empeno    @relation(fields: [empeno_id], references: [id_empeno])
+intereses Interes[]
+
+@@map("prestamos")
+}
+
+enum EstadoInteres {
+  PENDIENTE
+  PAGADO
+}
+
+model Interes {
+  id_interes    Int           @id @default(autoincrement())
+  prestamo_id   Int
+  mes           Int
+valor         Float
+  fecha_interes DateTime      @default(now())
+  estado        EstadoInteres @default(PENDIENTE)
+
+  prestamo Prestamo @relation(fields: [prestamo_id], references: [id_prestamo])
+
+  @@unique([prestamo_id, mes])
+  @@map("intereses")
+}
